@@ -173,17 +173,6 @@ public function updateFilesByKodeTransaksi($kode_transaksi, $filePaths)
     }
 }
 
-public function getBuktiFileById($id_transaksi)
-{
-    return $this->db->table('transaksi')
-                    ->select('bukti_file')
-                    ->where('id_transaksi', $id_transaksi)
-                    ->get()
-                    ->getRow()
-                    ->bukti_file;
-}
-
-
 
 
 
@@ -376,17 +365,7 @@ public function getLaporanByDateForExcel($start_date, $end_date)
         return $this->db->table($table)->get()->getResultArray();
     }
 
-//utk pesanan
-// public function joinAndGroupByTransaction() {
-//         $query = $this->db->table('transaksi')
-//                           ->select('kode_transaksi, user.username, transaksi.tgl_transaksi, SUM(transaksi.total_harga) as total_harga, GROUP_CONCAT(makanan.nama SEPARATOR ", ") as nama, GROUP_CONCAT(transaksi.jumlah SEPARATOR ", ") as jumlah, transaksi.status')
-//                           ->join('makanan', 'transaksi.id_makanan = makanan.id_makanan')
-//                           ->join('user', 'transaksi.id_user = user.id_user')
-//                           ->groupBy('kode_transaksi, user.username, transaksi.tgl_transaksi, transaksi.status')
-//                           ->orderBy('transaksi.tgl_transaksi', 'desc')
-//                           ->get();
-//         return $query->getResult();
-//     }
+
     public function joinAndGroupByTransaction()
 {
     $query = $this->db->table('transaksi')
@@ -399,22 +378,25 @@ public function getLaporanByDateForExcel($start_date, $end_date)
     return $query->getResult();
 }
 
-public function updateByKodeTransaksi($kode_transaksi, $data)
+public function joinAndGroupByBukti()
 {
-    $builder = $this->db->table('transaksi');
-    $builder->where('kode_transaksi', $kode_transaksi);
-    $builder->update($data);
+    return $this->select('kode_transaksi, bukti_file')
+                ->groupBy('kode_transaksi, bukti_file')
+                ->findAll();
 }
 
 
 
-public function updateByKodeTransaksi1($kode_transaksi, $updateData)
-{
-    // Update all records where kode_transaksi matches the provided value
-    $this->db->table('transaksi')
-             ->where('kode_transaksi', $kode_transaksi)
-             ->update($updateData);
-}
+
+
+
+public function updateByKodeTransaksi($kode_transaksi, $updateData)
+    {
+        // Update all records where kode_transaksi matches the provided value
+        $this->db->table($this->table)
+                 ->where('kode_transaksi', $kode_transaksi)
+                 ->update($updateData);
+    }
 
 
 public function getTransactionById($id_transaksi)
@@ -428,7 +410,7 @@ public function edit2($table, $data, $where)
     return $this->db->table($table)->update($data, $where);
 }
 
-
+//log activity
 public function logActivity($user_id, $activity, $description) {
     date_default_timezone_set('Asia/Jakarta'); // Set timezone ke WIB
     $timestamp = date('Y-m-d H:i:s'); // Waktu dalam WIB
@@ -442,8 +424,6 @@ public function logActivity($user_id, $activity, $description) {
 
     $this->db->table('activity_logs')->insert($data);
 }
-
-
 public function getActivityLogs() {
     $query = $this->db->table('activity_logs')
                       ->join('user', 'activity_logs.user_id = user.id_user', 'left')

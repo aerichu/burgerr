@@ -102,6 +102,12 @@
                 <span>Pesanan</span>
               </a>
             </li>
+            <li class="nav-item">
+              <a class="nav-link " href="http://localhost:8080/home/buktinota" >
+                <i class="fas fa-fw fa-receipt"></i>
+                <span>Bukti nota</span>
+              </a>
+            </li>
           <?php } ?>
           <?php
           if(session()->get('level')==2){

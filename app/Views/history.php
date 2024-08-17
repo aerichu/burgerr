@@ -98,6 +98,7 @@
                         <th scope="col">Makanan</th>
                         <th scope="col">Rating</th>
                         <th scope="col">Status</th>
+                        <th scope="col">Upload Bukti</th>
                         <th scope="col">Aksi</th>
                     </tr>
                 </thead>
@@ -123,13 +124,24 @@
                             <td><?= $kin->nama ?></td>
                             <td><?= $kin->rating ?></td>
                             <td><?= $kin->status ?></td>
-                            
+                            <td>
+                                <?php if ($index === 0): ?>
+                                    <!-- File Upload Form -->
+                                    <form action="<?= base_url('home/upload_bukti') ?>" method="post" enctype="multipart/form-data" style="display: inline-block;">
+                                        <input type="hidden" name="kode_transaksi" value="<?= $kin->kode_transaksi ?>">
+                                        <div class="form-group">
+                                            <input type="file" name="bukti_file" class="form-control-file" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-success btn-upload"><i class="fas fa-upload"></i></button>
+                                    </form>
+                                <?php endif; ?>
+                            </td>
                             <td>
                                 <?php if ($index === 0): ?>
                                     <!-- Only display Details and Finish Order buttons on the first row -->
-                                    <!-- <button class="btn btn-danger btn-circle btn-details" data-toggle="modal" data-target="#modalDetail<?= $kode_transaksi ?>">
+                                    <button class="btn btn-danger btn-circle btn-details" data-toggle="modal" data-target="#modalDetail<?= $kode_transaksi ?>">
                                         <i class="fas fa-info-circle"></i>
-                                    </button> -->
+                                    </button>
                                     <form action="<?= base_url('home/rate_order') ?>" method="post" style="display: inline-block;">
                                         <input type="hidden" name="kode_transaksi" value="<?= $kin->kode_transaksi ?>">
                                         <input type="hidden" name="id_transaksi" value="<?= $kin->id_transaksi ?>">
@@ -144,10 +156,6 @@
                                             </select>
                                         </div>
                                         <button type="submit" class="btn btn-primary btn-rate"><i class="fas fa-star"></i></button>
-                                         <a href="<?= base_url('home/e_upload/'.$kin->kode_transaksi) ?>" class="btn btn-outline-danger btn-sm">
-                                <i class="fa fa-sign"></i>
-                            </a>
-                            
                                     </form>
                                 <?php endif; ?>
                             </td>
@@ -207,4 +215,8 @@
 <?php endforeach; ?>
 
 <!-- Include jQuery and Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

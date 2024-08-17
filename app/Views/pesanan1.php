@@ -78,7 +78,6 @@
                                     <th>Total Harga</th>
                                     <th>Makanan</th>
                                     <th>Status</th>
-                                    <th>Nota Bukti</th>
                                     <?php if (session()->get('level') == 3): ?>
                                     <th>Aksi</th>
                                 <?php endif; ?>
@@ -129,16 +128,6 @@
                                     ?>
                                 </td>
                                 <td class="status"><?= $firstTransaction->status ?></td>
-                                <td>
-    <?php 
-    $filePaths = explode(',', $transaction->bukti_file);
-    foreach ($filePaths as $filePath) {
-        if ($filePath) {
-            echo '<a href="' . base_url('uploads/' . $filePath) . '" target="_blank">View File</a><br>';
-        }
-    }
-    ?>
-</td>
 
 
                                 <?php if (session()->get('level') == 3): ?>
@@ -153,9 +142,9 @@
                 </tbody>
             </table>
 
-            </div>
         </div>
     </div>
+</div>
 </div>
 </div>
 

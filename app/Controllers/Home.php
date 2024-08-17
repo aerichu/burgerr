@@ -21,9 +21,12 @@ class Home extends BaseController
     public function beranda()   
     {
         if(session()->get('level')>0){ 
-            $model= new M_burger;
-            $data['jes'] = $model->tampilgambar('toko'); // Mengambil data dari tabel 'toko'
+        $model= new M_burger;
+        $user_id = session()->get('id');
+        $data['jes'] = $model->tampilgambar('toko'); // Mengambil data dari tabel 'toko'
 
+
+        $model->logActivity($user_id, 'dashboard', 'User in dashboard page');
         echo view('header');
         echo view('menu', $data); 
         echo view('beranda'); 
@@ -34,7 +37,10 @@ class Home extends BaseController
 public function error()   
 {
     if(session()->get('level')>0){
+        $user_id = session()->get('id');
             $data['jes'] = $model->tampilgambar('toko'); // Mengambil data dari tabel 'toko'
+
+            $model->logActivity($user_id, 'dashboard', 'User in error 404 page');
             echo view('header');
             echo view('menu', $data);
             echo view('error');
@@ -118,12 +124,16 @@ public function logout() {
 
 
 
+
+
 //edit logo website dan text
 public function setting()
 {
     if (session()->get('level') > 0) {
         $model = new M_burger();
+        $user_id = session()->get('id');
         $data['jes'] = $model->tampilgambar('toko'); // Mengambil data dari tabel 'toko'
+        $model->logActivity($user_id, 'setting', 'User in setting page');
         
         echo view('header');
         echo view('menu', $data); // Mengirimkan data ke menu.php
@@ -188,9 +198,11 @@ public function e_pesanan($id)
 {
     if(session()->get('level')>0){
         $model= new M_burger;
+        $user_id = session()->get('id');
         $data['jes'] = $model->tampilgambar('toko'); // Mengambil data dari tabel 'toko'
         $where= array('id_transaksi'=>$id);
         $data['php']=$model->getWhere('transaksi',$where);
+        $model->logActivity($user_id, 'pesanan', 'User in edit order page');
         echo view('header');
         echo view('menu', $data);
         echo view('e_pesanan',$data);
@@ -204,7 +216,9 @@ public function pesanan()
 {
     if (session()->get('level') > 0) {
         $model = new M_burger;
+        $user_id = session()->get('id');
         $data['jes'] = $model->tampilgambar('toko'); // Mengambil data dari tabel 'toko'
+         $model->logActivity($user_id, 'pesanan', 'User in order page');
         
         // Fetch and group data by kode_transaksi
         $data['jel'] = $model->joinAndGroupByTransaction();
@@ -221,6 +235,38 @@ public function pesanan()
         return redirect()->to('http://localhost:8080/home/login');
     }
 }
+
+
+public function buktinota()
+{
+    if (session()->get('level') > 0) {
+        $model = new M_burger();
+        $user_id = session()->get('id');
+
+        $data['jes'] = $model->tampilgambar('toko');
+        $model->logActivity($user_id, 'nota', 'User in bukti nota page');
+        
+        // Fetch and group data by kode_transaksi
+        $data['jel'] = $model->joinAndGroupByBukti();
+        $grouped_data = [];
+        foreach ($data['jel'] as $kin) {
+            if (is_object($kin)) {
+                $grouped_data[$kin->kode_transaksi][] = $kin;
+            } elseif (is_array($kin)) {
+                $grouped_data[$kin['kode_transaksi']][] = $kin;
+            }
+        }
+        $data['grouped_jel'] = $grouped_data;
+
+        echo view('header');
+        echo view('menu', $data);
+        echo view('buktinota', $data);
+    } else {
+        return redirect()->to('http://localhost:8080/home/login');
+    }
+}
+
+
 
 
 
@@ -256,8 +302,10 @@ public function t_burger()
 {
     if(session()->get('level')>0){
         $model= new M_burger;
+        $user_id = session()->get('id');
         $data['jes'] = $model->tampilgambar('toko'); // Mengambil data dari tabel 'toko'
         $data['jel']= $model->tampil('makanan');
+        $model->logActivity($user_id, 'menu burger', 'User in tambah menu burger page');
         echo view('header');
         echo view('menu', $data);
         echo view('t_burger',$data);
@@ -287,9 +335,11 @@ public function e_burger($id)
 {
     if(session()->get('level')>0){
         $model= new M_burger;
+        $user_id = session()->get('id');
         $data['jes'] = $model->tampilgambar('toko'); // Mengambil data dari tabel 'toko'
         $where= array('id_makanan'=>$id);
         $data['php']=$model->getWhere('makanan',$where);
+        $model->logActivity($user_id, 'edit burger', 'User in edit menu burger page');
         echo view('header');
         echo view('menu', $data);
         echo view('e_burger',$data);
@@ -331,10 +381,12 @@ public function h_burger($id)
 public function detail_burger($id)
 {
     if(session()->get('level')==2 || session()->get('level')==0 ){
+        $user_id = session()->get('id');
         $data['jes'] = $model->tampilgambar('toko'); // Mengambil data dari tabel 'toko'
         $model= new M_burger;
         $where= array('id_makanan'=>$id);
         $data['php']=$model->getWhere('makanan',$where);
+        $model->logActivity($user_id, 'detail burger', 'User in detail burger page');
         echo view('header');
         echo view('menu', $data);
         echo view('detail_burger',$data);
@@ -347,6 +399,7 @@ public function keranjang()
 {   
  if(session()->get('level')>0){
     $model= new M_burger();
+    $user_id = session()->get('id');
          $data['jes'] = $model->tampilgambar('toko'); // Mengambil data dari tabel 'toko'
          $where1=array('user.id_user'=>session()->get('id'));
 
@@ -354,6 +407,7 @@ public function keranjang()
          $where2=array(
           'deleted_at'=> NULL
       );
+         $model->logActivity($user_id, 'keranjang', 'User in keranjang page');
          $data['mel']= $model->getWherepol('makanan', $where2);
          //$data['mel']= $model->tampil('makanan');
 
@@ -559,34 +613,71 @@ public function aksi_bayar()
 
 //history
 public function history()
-{
-    // Mengecek level pengguna dari session
-    if (session()->get('level') > 0) {
-        $model = new M_burger();
-        $where1 = array('user.id_user' => session()->get('id'));
+    {
+        // Mengecek level pengguna dari session
+        if (session()->get('level') > 0) {
+            $model = new M_burger();
+            $where1 = array('user.id_user' => session()->get('id'));
+            $user_id = session()->get('id');
 
-        // Mengambil data dari tabel 'toko' dan 'transaksi'
-        $data['jes'] = $model->tampilgambar('toko');
-        $data['jel'] = $model->jointigawhere('transaksi', 'makanan', 'user', 'transaksi.id_makanan=makanan.id_makanan', 'transaksi.id_user=user.id_user', 'transaksi.id_transaksi', $where1);
+            // Mengambil data dari tabel 'toko' dan 'transaksi'
+            $data['jes'] = $model->tampilgambar('toko');
+            $data['jel'] = $model->jointigawhere('transaksi', 'makanan', 'user', 'transaksi.id_makanan=makanan.id_makanan', 'transaksi.id_user=user.id_user', 'transaksi.id_transaksi', $where1);
 
-        // Mengelompokkan data berdasarkan kode_transaksi
-        $grouped_data = [];
-        foreach ($data['jel'] as $kin) {
-            $grouped_data[$kin->kode_transaksi][] = $kin;
+            // Mengelompokkan data berdasarkan kode_transaksi
+            $grouped_data = [];
+            foreach ($data['jel'] as $kin) {
+                $grouped_data[$kin->kode_transaksi][] = $kin;
+            }
+
+            // Menyimpan data yang sudah digabungkan dalam array baru
+            $data['grouped_jel'] = $grouped_data;
+            $model->logActivity($user_id, 'history', 'User in history page');
+
+            // Menampilkan view
+            echo view('header');
+            echo view('menu', $data);
+            echo view('history', $data);
+        } else {
+            // Redirect ke halaman login jika level pengguna tidak cukup
+            return redirect()->to('/home/login');
         }
-
-        // Menyimpan data yang sudah digabungkan dalam array baru
-        $data['grouped_jel'] = $grouped_data;
-
-        // Menampilkan view
-        echo view('header');
-        echo view('menu', $data);
-        echo view('history', $data);
-    } else {
-        // Redirect ke halaman login jika level pengguna tidak cukup
-        return redirect()->to('/home/login');
     }
+
+    public function upload_bukti()
+{
+    $model = new M_burger();
+    $user_id = session()->get('id');
+
+    // Retrieve POST data
+    $kode_transaksi = $this->request->getPost('kode_transaksi');
+
+    // Check if file is uploaded
+    $file = $this->request->getFile('bukti_file');
+    if ($file->isValid() && !$file->hasMoved()) {
+        // Use the original name of the uploaded file
+        $originalName = $file->getName();
+        // Move the file to the designated directory with the original name
+        $file->move(ROOTPATH . 'public/uploads', $originalName);
+
+        // File path to store in the database
+        $filePath = $originalName;
+
+        // Update all records with the same kode_transaksi
+        $updateData = [
+            'bukti_file' => $filePath,
+        ];
+
+        // Call the model function to update the records
+        $model->updateByKodeTransaksi($kode_transaksi, $updateData);
+        $model->logActivity($user_id, 'upload nota', 'User uploaded a nota');
+
+        return redirect()->to('home/history')->with('success', 'Bukti uploaded successfully.');
+    }
+
+    return redirect()->to('home/history')->with('error', 'Failed to upload bukti.');
 }
+
 
 
 
@@ -598,6 +689,8 @@ public function e_upload($id)
         $data['jes'] = $model->tampilgambar('toko'); // Mengambil data dari tabel 'toko'
         $where= array('kode_transaksi'=>$id);
         $data['php']=$model->getWhere('transaksi',$where);
+        $user_id = session()->get('id');
+        $model->logActivity($user_id, 'edit upload', 'User in edit upload page');
         echo view('header');
         echo view('menu', $data);
         echo view('e_upload',$data);
@@ -605,56 +698,6 @@ public function e_upload($id)
     }else{
         return redirect()->to('http://localhost:8080/home/login');
     }
-}
-
-//upload file
-// public function aksi_e_berkas()
-// {
-//     $id = $this->request->getPost('id'); // Ensure 'id' is the correct key for the form
-//     $where = array('id_transaksi' => $id); // Adjust key if necessary
-    
-//     $uploadedFile = $this->request->getFile('bukti_file');
-    
-//     if ($uploadedFile && $uploadedFile->isValid()) {
-//         $fileName = $uploadedFile->getName();
-        
-//         // Save the file to the server
-//         if ($uploadedFile->move(WRITEPATH . 'uploads', $fileName)) {
-//             // Update the database
-//             $data = array(
-//                 'bukti_file' => $fileName
-//             );
-            
-//             $model = new M_burger();
-//             $model->edit('transaksi', $data, $where);
-//         }
-//     }
-    
-//     return redirect()->to('http://localhost:8080/home/keranjang');
-// }
-
-public function aksi_e_berkas()
-{
-    $id = $this->request->getPost('id'); // Ensure 'id' is the correct key for the form
-    $kode_transaksi = $this->request->getPost('kode_transaksi'); // Fetch kode_transaksi
-    $uploadedFile = $this->request->getFile('bukti_file');
-
-    if ($uploadedFile && $uploadedFile->isValid()) {
-        $fileName = $uploadedFile->getName();
-        
-        // Save the file to the server
-        if ($uploadedFile->move(WRITEPATH . 'uploads', $fileName)) {
-            // Update the database for all records with the same kode_transaksi
-            $data = array(
-                'bukti_file' => $fileName
-            );
-            
-            $model = new M_burger();
-            $model->update_multiple('transaksi', $data, 'kode_transaksi', $kode_transaksi);
-        }
-    }
-    
-    return redirect()->to('http://localhost:8080/home/keranjang');
 }
 
 
@@ -665,11 +708,13 @@ public function rate_order()
     $rating = $this->request->getPost('rating');
 
     $model = new M_burger();
+    $user_id = session()->get('id');
 
     // Update rating in the database for all transactions with the same kode_transaksi
     $data = [
         'rating' => $rating
     ];
+    $model->logActivity($user_id, 'rating', 'User rated an order');
 
     // Update all transactions with the same kode_transaksi
     $model->updateRatingsByKodeTransaksi($kode_transaksi, $data);
@@ -702,6 +747,9 @@ public function user()
 
         // Memuat view
         $data['setting'] = $model->getWhere('toko', $where);
+
+        $user_id = session()->get('id');
+        $model->logActivity($user_id, 'user', 'User in user page');
 
         echo view('header');
         echo view('menu', $data);
@@ -775,8 +823,10 @@ public function aksi_reset($id)
 public function t_user()
 {
     $model= new M_burger;
+    $user_id = session()->get('id');
     $data['jes'] = $model->tampilgambar('toko'); // Mengambil data dari tabel 'toko'
     $data['jel']= $model->tampil('user');
+    $model->logActivity($user_id, 'tambah user', 'User in tambah user page');
     echo view('header');
     echo view('menu', $data);
     echo view('t_user',$data);
@@ -814,9 +864,11 @@ public function detail($id)
 {
     if(session()->get('level')==2 || session()->get('level')==0 ){
         $model= new M_burger;
+        $user_id = session()->get('id');
         $data['jes'] = $model->tampilgambar('toko'); // Mengambil data dari tabel 'toko'
         $where= array('id_user'=>$id);
         $data['php']=$model->getWhere('user',$where);
+        $model->logActivity($user_id, 'detail', 'User in detail page');
         echo view('header');
         echo view('menu',$data);
         echo view('detail',$data);
@@ -833,9 +885,11 @@ public function restore()
 {
     if(session()->get('level')==2 || session()->get('level')==0 ){
         $model= new M_burger;
+        $user_id = session()->get('id');
         $data['jes'] = $model->tampilgambar('toko'); // Mengambil data dari tabel 'toko'
         // $data['jel']=$model->tampil('makanan');
         $data['jel']=$model->query('select * from makanan where deleted_at IS NOT NULL');
+        $model->logActivity($user_id, 'user', 'User in restore page');
         echo view('header');
         echo view('menu',$data);
         echo view('restore',$data);
@@ -865,6 +919,7 @@ public function history_edit()
 {   
     if(session()->get('level')==2){
     $model = new M_burger();
+    $user_id = session()->get('id');
     $logs = $model->gethistoryedit();
 
     $data['logs'] = $logs;
@@ -874,6 +929,7 @@ public function history_edit()
         'id_toko' => 1
     );
     $data['setting'] = $model->getWhere('toko', $where);
+    $model->logActivity($user_id, 'history edit', 'User in history edit page');
 
     echo view('header');
     echo view('menu', $data);
@@ -895,60 +951,7 @@ public function history_edit()
 
 
 
-//laporan
-public function printPDF($kode_transaksi)
-{
-    $model = new \App\Models\M_burger();
-
-        // Fetch the transaction details
-    $where1 = array('transaksi.kode_transaksi' => $kode_transaksi);
-    $data['transactions'] = $model->jointigawhere(
-        'transaksi', 'makanan', 'user', 
-        'transaksi.id_makanan=makanan.id_makanan', 
-        'transaksi.id_user=user.id_user', 
-        'transaksi.id_transaksi', 
-        $where1
-    );
-
-        // Load view and convert to HTML
-    $html = view('print_template', $data);
-
-        // Initialize Dompdf
-    $options = new Options();
-    $options->set('defaultFont', 'Arial');
-    $dompdf = new Dompdf($options);
-    $dompdf->loadHtml($html);
-
-        // (Optional) Setup the paper size and orientation
-    $dompdf->setPaper('A4', 'portrait');
-
-        // Render the HTML as PDF
-    $dompdf->render();
-
-        // Output the generated PDF to Browser
-    $dompdf->stream("transaksi_$kode_transaksi.pdf", array("Attachment" => false));
-}
-public function laporan()
-{
-    if (session()->get('level') == 2 || session()->get('level') == 0) {
-        $model = new M_burger();
-             $data['jes'] = $model->tampilgambar('toko'); // Mengambil data dari tabel 'toko'
-             echo view('header');
-             echo view('menu', $data);
-             echo view('laporan');
-         } else {
-            return redirect()->to('http://localhost:8080/home/error');
-        }
-    }
-
-    public function generate_pdf()
-    {
-        if (session()->get('level') > 0) {
-            $this->laporan_pdf();
-        } else {
-            return redirect()->to('home/login');
-        }
-    }
+//nota
 
     public function printnota($kode_transaksi)
     {
@@ -978,106 +981,106 @@ public function laporan()
         ));
     }
 
-
-    private function laporan_pdf()
-    {
+//laporan
+public function laporan()
+{
+    if (session()->get('level') == 2 || session()->get('level') == 0) {
         $model = new M_burger();
-
-        $start_date = $this->request->getPost('start_date'); 
-        $end_date = $this->request->getPost('end_date'); 
-
-        $data['laporan'] = $model->getLaporanByDate($start_date, $end_date); 
-        $options = new Options();
-        $options->set('isHtml5ParserEnabled', true);
-        $options->set('isRemoteEnabled', true);
-        $dompdf = new Dompdf($options);
-
-
-        $html = view('laporan_pdf', $data);
-
-        $dompdf->loadHtml($html);
-        $dompdf->render();
-        $dompdf->stream("laporan.pdf");
+        $user_id = session()->get('id');
+             $data['jes'] = $model->tampilgambar('toko'); // Mengambil data dari tabel 'toko'
+             $model->logActivity($user_id, 'laporan', 'User in laporan page');
+             echo view('header');
+             echo view('menu', $data);
+             echo view('laporan');
+         } else {
+            return redirect()->to('http://localhost:8080/home/error');
+        }
     }
 
-    public function generate_excel()
-    {
-    $model = new M_burger(); // Ensure this model is properly defined and extends the base Model class
-    $start_date = $this->request->getPost('start_date'); 
-    $end_date = $this->request->getPost('end_date'); 
+    public function generate_report()
+{
+    if (session()->get('level') > 0) {
+        $start_date = $this->request->getPost('start_date');
+        $end_date = $this->request->getPost('end_date');
+        $report_type = $this->request->getPost('report_type');
 
-    // Fetch data for the given date range
+        switch ($report_type) {
+            case 'pdf':
+                $this->generate_pdf($start_date, $end_date);
+                break;
+            case 'excel':
+                $this->generate_excel($start_date, $end_date);
+                break;
+            case 'window':
+                $this->generate_window_result($start_date, $end_date);
+                break;
+            default:
+                return redirect()->to('home/error');
+        }
+    } else {
+        return redirect()->to('home/login');
+    }
+}
+
+
+    private function generate_pdf($start_date, $end_date)
+{
+    $model = new M_burger();
+    $data['laporan'] = $model->getLaporanByDate($start_date, $end_date);
+
+    $options = new Options();
+    $options->set('defaultFont', 'Arial');
+    $dompdf = new Dompdf($options);
+    $html = view('laporan_pdf', $data);
+    $dompdf->loadHtml($html);
+    $dompdf->setPaper('A4', 'portrait');
+    $dompdf->render();
+    $dompdf->stream("laporan.pdf", array("Attachment" => false));
+}
+
+private function generate_excel($start_date, $end_date)
+{
+    $model = new M_burger();
     $data['laporan'] = $model->getLaporanByDateForExcel($start_date, $end_date);
 
-    // Create a new Spreadsheet object
     $spreadsheet = new Spreadsheet();
-    $spreadsheet->getProperties()
-    ->setCreator("Your Name")
-    ->setLastModifiedBy("Your Name")
-    ->setTitle("Laporan Transaksi")
-    ->setSubject("Laporan Transaksi")
-    ->setDescription("Laporan Transaksi")
-    ->setKeywords("Spreadsheet")
-    ->setCategory("Report");
+    $spreadsheet->getProperties()->setCreator("Your Name")->setLastModifiedBy("Your Name")
+        ->setTitle("Laporan Transaksi")->setSubject("Laporan Transaksi")
+        ->setDescription("Laporan Transaksi")->setKeywords("Spreadsheet")
+        ->setCategory("Report");
 
-    // Set the active sheet
     $sheet = $spreadsheet->getActiveSheet();
     $sheet->setCellValue('A1', 'ID Transaksi')
-    ->setCellValue('B1', 'Tanggal Transaksi')
-    ->setCellValue('C1', 'Kode Transaksi')
-    ->setCellValue('D1', 'ID Makanan')
-    ->setCellValue('E1', 'Jumlah')
-    ->setCellValue('F1', 'Total Harga');
+        ->setCellValue('B1', 'Tanggal Transaksi')
+        ->setCellValue('C1', 'Kode Transaksi')
+        ->setCellValue('D1', 'ID Makanan')
+        ->setCellValue('E1', 'Jumlah')
+        ->setCellValue('F1', 'Total Harga');
 
-    // Populate the spreadsheet with data
     $rowCount = 2;
     foreach ($data['laporan'] as $row) {
-        $sheet->setCellValue('A'.$rowCount, $row['id_transaksi'])
-        ->setCellValue('B'.$rowCount, $row['tgl_transaksi'])
-        ->setCellValue('C'.$rowCount, $row['kode_transaksi'])
-        ->setCellValue('D'.$rowCount, $row['id_makanan'])
-        ->setCellValue('E'.$rowCount, $row['jumlah'])
-        ->setCellValue('F'.$rowCount, $row['total_harga']);
+        $sheet->setCellValue('A' . $rowCount, $row['id_transaksi'])
+            ->setCellValue('B' . $rowCount, $row['tgl_transaksi'])
+            ->setCellValue('C' . $rowCount, $row['kode_transaksi'])
+            ->setCellValue('D' . $rowCount, $row['id_makanan'])
+            ->setCellValue('E' . $rowCount, $row['jumlah'])
+            ->setCellValue('F' . $rowCount, $row['total_harga']);
         $rowCount++;
     }
 
-    // Set the headers for the Excel file download
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     header('Content-Disposition: attachment;filename="laporan_transaksi.xlsx"');
     header('Cache-Control: max-age=0');
 
-    // Write the file and output to the browser
     $writer = new Xlsx($spreadsheet);
     $writer->save('php://output');
 }
 
-public function generate_window()
+private function generate_window_result($start_date, $end_date)
 {
-    if (session()->get('level') > 0) {
-        echo view('header');
-        echo view('menu');
-        echo view('laporan');
-        echo view('footer');
-    } else {
-        return redirect()->to('home/login');
-    }
-}
-
-public function generate_window_result()
-{
-    if (session()->get('level') > 0) {
-        // Ambil data formulir berdasarkan rentang waktu dari request POST
-        $start_date = $this->request->getPost('start_date');
-        $end_date = $this->request->getPost('end_date');
-        $model = new M_burger();
-        $data['formulir'] = $model->getLaporanByDate($start_date, $end_date);
-
-        echo view('cetak_hasil', $data);
-    } else {
-        return redirect()->to('home/login');
-    }
-
-
+    $model = new M_burger();
+    $data['formulir'] = $model->getLaporanByDate($start_date, $end_date);
+    echo view('cetak_hasil', $data);
 }
 
 
